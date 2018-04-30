@@ -1,7 +1,7 @@
 Title: Handling Disconnect and Reconnect.
 Description: What to do when a player disconnects and reconnects.
 
-For may games this doesn't matter. Do nothing. A player that disconnects
+For many games this doesn't matter. Do nothing. A player that disconnects
 and reconnects later just starts as a new player. The majority of samples
 HappyFunTimes games work this way.
 
@@ -32,14 +32,14 @@ There's 2 ways around this.
     reconnects to a game.
 
     So, you can make some player state, associate it with the session id, then if a player
-    reconnects you can user their session id to get their old state. For example
+    reconnects you can use their session id to get their old state. For example
 
         class PlayerState {
           public int score = 0;
           public int characterClass = 0;
         };
 
-        Dictionary<string, PlayerState> m_playerStates = new Dictionary<string, PlayerState>();
+        static Dictionary<string, PlayerState> s_playerStates = new Dictionary<string, PlayerState>();
 
         void InitializeNetPlayer(SpawnInfo spawnInfo) {
 
@@ -47,25 +47,21 @@ There's 2 ways around this.
 
             // See if we already have state for this player
             PlayerState playerState = null;
-            if (!m_playerStates.TryGetValue(m_netPlayer.GetSessionId(), out playerState)) {
+            if (!s_playerStates.TryGetValue(m_netPlayer.GetSessionId(), out playerState)) {
 
                 // This is a new player so setup their player state
                 playerState = new PlayerState();
 
                 // Save it in case they disconnect and reconnect later
-                m_playerStates[m_netPlayer.GetSessionId()] = playerState;
+                s_playerStates[m_netPlayer.GetSessionId()] = playerState;
             }
 
             // adjust the GameObject based on PlayerState
             ....
         }
 
-
 Of course it's not that simple. What do you do if they never reconnect? Maybe
 it got too late and they left. Maybe they got sucked into a conversation
 and are no longer interested in playing. Maybe their battery died on their
 phone. All of that is a design issue and I can't really help but it's something
 you should think about if you're designing a long play game.
-
-
-

@@ -78,7 +78,11 @@ it will only handle 13-14 players and it's under $20.
 Find the IP address of your router. If the URL in your browser looks something like `http://192.168.2.254/???`
 then that's the IP address of your router. Otherwise check the lan settings. For example
 
-<div style="text-align: center;"><a href="images/router-network-lan-settings.png"><img width="50% height="50%" src="images/router-network-lan-settings.png" /></a></div>
+<div style="text-align: center;">
+  <a href="images/router-network-lan-settings.png">
+     <img width="50%" height="50%" src="assets/images/router-network-lan-settings.png" />
+  </a>
+</div>
 
 Now that we know the router's IP address is `192.168.2.254` we know our network's address
 is `192.168.2` ([see above](#networking-basics)). If yours is different remember that **for all the ip addresses below
@@ -93,22 +97,39 @@ address. On TL-WR702N that's under Advanced Settings->DHCP->Address Reservations
 I [looked up the MAC address for my machine](#looking-up-your-mac-address) (the machine running HappyFunTimes) and assigned it
 directly to `192.168.2.9`.
 
-<div style="text-align: center;"><a href="images/router-address-reservation.png"><img width="50%" height="50%" src="images/router-address-reservation.png"></a></div>
+<div style="text-align: center;">
+  <a href="images/router-address-reservation.png">
+     <img width="50%" height="50%" src="assets/images/router-address-reservation.png" />
+  </a>
+</div>
 
 I then went to the DHCP settings at Advanced Settings->DHCP->DHCP Settings and
 configured it to give out IP addresses from to `192.168.2.10` to `192.168.2.250`.
 Finally I set the DNS there to the same address I used for the HappyFunTimes machine.
 (`192.168.2.9`)
 
-<div style="text-align: center;"><a href="images/router-dhcp-settings.png"><img width="50%" height="50%" src="images/router-dhcp-settings.png"></a></div>
+<div style="text-align: center;">
+   <a href="images/router-dhcp-settings.png">
+      <img width="50%" height="50%" src="assets/images/router-dhcp-settings.png">
+    </a>
+</div>
 
 With that done I picked a nice name for my WiFi's SSID under
 Basic Settings->Wireless->Wireless Settings
 
-<div style="text-align: center;"><a href="images/router-wifi-settings.png"><img width="50%" height="50%" src="images/router-wifi-settings.png"></a></div>
+<div style="text-align: center;">
+  <a href="images/router-wifi-settings.png">
+    <img width="50%" height="50%" src="assets/images/router-wifi-settings.png">
+  </a>
+</div>
 
 and in my case I decided to turn off security so no password is needed.
-<div style="text-align: center;"><a href="images/router-wifi-security.png"><img width="50%" wheight="50%" src="images/router-wifi-security.png"></a></div>
+
+<div style="text-align: center;">
+  <a href="images/router-wifi-security.png">
+    <img width="50%" wheight="50%" src="assets/images/router-wifi-security.png">
+  </a>
+</div>
 
 This may or may not be a good idea since lots of people's devices are set to automatically
 connect to open routers. If you're in a relatively isolated location and everyone is going to
@@ -137,32 +158,99 @@ to use it as a normal router again are
 Starting HappyFunTimes in installation mode
 -------------------------------------------
 
+Depending on the version
+
+### If you're using the Unity version of HappyFunTimes
+
+There are 2 ways to run installation mode.
+
+*   From the Editor
+
+    1.  Pick Window->HappyFunTimes->Settings in Unity
+
+    2.  Check "Installation Mode"
+
+        <img src="unity/images/happyfuntimes-settings.png" width="50%" height="50%"/>
+
+    3.  Run the game
+
+*   From an exported game
+
+    1.  Start the game from the command line and add the option `--hft-installation-mode`
+
+        On OSX
+
+            nameofgame.app/Contents/MacOS/nameofgame --hft-installation-mode
+
+        On Windows
+
+            nameofgame.exe --hft-installation-mode
+
+### If you're using the electron verison of HappyFunTimes
+
 Open a node command prompt or terminal and on OSX type
 
-    sudo hft start --dns
+    sudo npm run start -- --dns
 
 On Windows just
 
-    hft start --dns
+    npm run start -- --dns
 
 You need `sudo` on OSX because port 80 is normally restricted to admin users only.
 
-Go to `http://localhost/games.html` and pick a game.
+### After starting in installation mode
 
-Now try connecting a smartphone to your router. If it's an iOS device it *should*
+Try connecting a smartphone to your router. If it's an iOS device it *should*
 automatcally come up with a page that says "Start". If it's an Android device
 open the browser and go to `hft.com` or any `http://` url.
 
-If you're planning on running only one game on your installation you might want to use
-these one or more of these [options](commands.md#hft-start) to start
+### Troubleshooting
 
-    hft start --dns --no-ask-name --no-menu --kiosk
+If installation mode is not working for you it's possible your router can't
+handle it BUT here's a few steps to check
 
-or
+After you've setup installation mode on your router:
 
-    hft start --dns --no-ask-name --no-menu --kiosk --optimize-controller
+#### Windows
 
-[See the start command for details](commands.md#hft-start).
+open a command prompt and type `ipconfig`
+
+<div style="text-align: center;">
+  <img src="assets/images/windows-ipconfig.png" width="50%" height="50%" />
+</div>
+
+The IPv4 address should match the one you specified in your router configuration when assigning a static IP address for your computer
+
+Then if you run the game **in installation mode** and then alt-tab back to the command prompt and type `nslookup foo.com`
+
+<div style="text-align: center;">
+  <img src="assets/images/windows-nslookup.png" width="50%" height="50%" />
+</div>
+
+The 1st and 2nd with the 3rd maybe being your Default Gateway from above numbers should match your IPv4 address from ipconfig
+
+If those don't match then your router is not setup correctly or else you've maybe you manually put DNS addresses in your computer's network configuration and need to remove them.
+
+#### macOS / Linux
+
+open a terminal and type `ifconfig`
+
+<div style="text-align: center;">
+  <img src="assets/images/macos-ifconfig.png" width="66%" height="66%" />
+</div>
+
+The IPv4 address should match the one you specified in your router configuration when assigning a static IP address for your computer
+
+Then if you run the game **in installation mode** and then alt-tab/cmd-tab back to the terminal and type `dig foo.com`
+
+<div style="text-align: center;">
+  <img src="assets/images/macos-dig.png" width="66%" height="66%"/>
+</div>
+
+The 1st and 2nd with the 3rd maybe being your Default Gateway from above numbers should match your IPv4 address from ipconfig
+
+If those don't match then your router is not setup correctly or else you've maybe you manually put DNS addresses in your computer's network configuration and need to remove them.
+
 
 Setting Up an Airport Extreme
 -----------------------------
@@ -178,12 +266,16 @@ Use one of the top 3 sockets on the airport extreme to connect
 Start the Airport Utility on your computer and select the airport extreme
 from the image then select edit.
 
-<div style="text-align: center;"><img src="images/airport-extreme.png" width="50%" height="50%" /></div>
+<div style="text-align: center;">
+  <img src="assets/images/airport-extreme.png" width="50%" height="50%" />
+</div>
 
 Under the Network section click the `+` button to add your machine
 to the DHCP reservation list.
 
-<div style="text-align: center;"><img src="images/airport-extreme-reserve-ip.png" width="50% height="50%" /></div>
+<div style="text-align: center;">
+  <img src="assets/images/airport-extreme-reserve-ip.png" width="50%" height="50%" />
+</div>
 
 Then add your machine. You'll need to know your machine's [mac address](#looking-up-your-mac-address).
 
@@ -191,11 +283,15 @@ On Mac you can look that up in the the menus by picking
 `Apple Menu->System Preferences` then clicking on `Network`.
 Select the Thunderbolt connection
 
-<div style="text-align: center;"><img src="images/osx-network-thunderbolt.png" width="50% height="50%" /></div>
+<div style="text-align: center;">
+  <img src="assets/images/osx-network-thunderbolt.png" width="50%" height="50%" />
+</div>
 
 and then clicking the hardware section
 
-<div style="text-align: center;"><img src="images/osx-macaddress.png" width="50% height="50%" /></div>
+<div style="text-align: center;">
+  <img src="assets/images/osx-macaddress.png" width="50%" height="50%" />
+</div>
 
 On Windows you can look up your Mac address by opening a command prompt
 and typing `getmac`. You want the mac address for wired/ethernet networking.
@@ -205,7 +301,9 @@ picutres don't match. For you they should match).
 In description put whatever you want to remember
 that's your machine. Select "Mac Address" for "Reserve Address By".
 
-<div style="text-align: center;"><img src="images/airport-extreme-reserve-ip-details.png" width="50% height="50%" /></div>
+<div style="text-align: center;">
+  <img src="assets/images/airport-extreme-reserve-ip-details.png" width="50%" height="50%" />
+</div>
 
 Note the number under IPv4 Address. It probably defaults to the correct
 number for your setup. Note the number.
@@ -213,7 +311,9 @@ number for your setup. Note the number.
 In the Internet section of the Airport Utility put that number in the
 2 spaces for DNS Servers
 
-<div style="text-align: center;"><img src="images/airport-extreme-dns.png" width="50% height="50%" /></div>
+<div style="text-align: center;">
+  <img src="assets/images/airport-extreme-dns.png" width="50%" height="50%" />
+</div>
 
 Note: with these numbers set in DNS server your Airport Extreme will no longer work for internet
 access. You can only use it for HappyFunTimes installation mode. To use it for internet run

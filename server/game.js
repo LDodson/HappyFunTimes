@@ -31,9 +31,8 @@
 
 "use strict";
 
-var debug        = require('debug')('game');
+var debug        = require('debug')('happyfuntimes:game');
 var hftSite      = require('./hftsite');
-var semverUtils  = require('../lib/semver-utils');
 
 /**
  * @typedef {object} Game~Options
@@ -51,7 +50,6 @@ var semverUtils  = require('../lib/semver-utils');
 var Game = function(id, gameGroup, options) {
   options = options || {};
   this.id = id;
-  this.runtimeInfo = gameGroup.runtimeInfo;
   this.gameGroup = gameGroup;
   this.players = {};
   this.numPlayers = 0;
@@ -61,12 +59,12 @@ var Game = function(id, gameGroup, options) {
   debug("create game " + this.gameId);
 };
 
-Game.prototype.getControllerUrl = function(baseUrl) {
-  return this.runtimeInfo ? baseUrl + "/games/" + this.runtimeInfo.info.happyFunTimes.gameId + "/index.html" : undefined;
+Game.prototype.getControllerUrl = function() {
+  return "/controller.html";
 };
 
 Game.prototype.setGameId = function() {
-  this.gameId = (this.runtimeInfo ? this.runtimeInfo.info.happyFunTimes.gameId : "") + " id=" + this.id;
+  this.gameId = " id=" + this.id;
 };
 
 /**
@@ -289,6 +287,7 @@ Game.prototype.assignClient = function(client, data) {
     cmd: 'gamestart',
     data: {
       id: this.id,
+      gameId: (this.runtimeInfo ? this.runtimeInfo.info.happyFunTimes.gameId : ""),
       needNewHFT: (this.runtimeInfo ? this.runtimeInfo.needNewHFT : false),
     },
   });
@@ -343,9 +342,7 @@ Game.prototype.sendGameDisconnect = function(otherGame) {
 
     var data = {};
 
-    if (semverUtils.canUse(this.runtimeInfo.info.happyFunTimes.apiVersion, "1.14.0")) {
-      data.id = otherGame.id;
-    }
+    data.id = otherGame.id;
 
     this.client.send({
       cmd: 'upgame',

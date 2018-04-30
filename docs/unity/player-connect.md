@@ -7,7 +7,7 @@ here are the steps.
 The easiest thing to do when a player joins your HappyFunTimes game
 is to spawn a prefab. To do this
 
-1.  make new `GameObject`
+1.  Make new `GameObject`
 
     <img src="images/create-game-object.png" class="halfsize lesson" />
 
@@ -16,7 +16,7 @@ is to spawn a prefab. To do this
 
     <img src="images/name-gameobject.png" class="halfsize lesson" />
 
-2.  click `Add Component` and then pick `HappyFunTimes->PlayerSpawner`
+2.  Click `Add Component` and then pick `HappyFunTimes->PlayerSpawner`
 
     <img src="images/hft-components.png" class="halfsize lesson" />
 
@@ -55,7 +55,7 @@ as a controller.
 The easist way to do this is to use the HappyFunTimes PlayerConnector
 script.
 
-1.  make new `GameObject`
+1.  Make new `GameObject`
 
     <img src="images/create-game-object.png" class="halfsize lesson" />
 
@@ -64,11 +64,11 @@ script.
 
     <img src="images/name-gameobject.png" class="halfsize lesson" />
 
-2.  click `Add Component` and then pick `HappyFunTimes->PlayerConnectorr`
+2.  Click `Add Component` and then pick `HappyFunTimes->PlayerConnectorr`
 
     <img src="images/hft-components.png" class="halfsize lesson" />
 
-    <img src="images/hft-playerconnector-script.png" class="halfsize" />
+    <img src="images/hft-playerconnector-script.png" class="halfsize lesson" />
 
 3.  Open the player property and set the size to the number of players
     you support, then drag in each of your player GameObjects into the
@@ -109,6 +109,23 @@ script.
     You also need to handle waiting players, telling them the game is
     full or to wait.
 
+#### Letting everyone play
+
+You can *return a player* by calling `PlayerConnector.ReturnPlayer(someNetPlayer)`.
+You'll have to get a reference to your `PlayerConnector`.
+
+What do I mean by *return the player*?
+
+Imagine you've made a game that supports only 4 people. There's 8 people
+who have connected to your game. 4 of them are playing. 4 are waiting to play.
+When a player dies you want the next player waiting to start playing. You can
+do this by when a player dies calling `thePlayerConnector.ReturnPlayer(netPlayerOfPlayerThatDied)`.
+
+Similarly let's say you made a round based game. 7 people are connected
+but the game only supports 4 players. You can call `thePlayerConnector.FlushCurrentPlayers()`
+which will effectively call `thePlayerConnector.ReturnPlayer(netPlayer)` for every currently
+connected player and so will swap in the next 4 players.
+
 ## Things to be aware of
 
 You'll get an `OnDisconnect` event (your `OnDisconnect` callback will be called)
@@ -127,7 +144,7 @@ When the game switches to players needing buttons on their phone or players
 needing slingshots on their phone you send a message to them you made up something
 like
 
-    class ShowControllerMsg : MessageCmdData {
+    class ShowControllerMsg {
       ShowControllerMsg(string s) : { control = s; }
       public string control;
     };
@@ -140,5 +157,3 @@ the slingshot controls.
 
 So, when your `InitializeNetPlayer` function gets called you need to send that
 message to tell the phone to switch to slingshot mode.
-
-

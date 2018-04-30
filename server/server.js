@@ -31,163 +31,71 @@
 
 'use strict';
 
-var settingsOptionSpec = {
-      option: 'settings',         type: 'String',     description: 'settings: key=value, ',
-};
-
-var optionSpec = {
-  options: [
-    { option: 'help', alias: 'h', type: 'Boolean',    description: 'displays help'},
-    { option: 'config-path',      type: 'String',     description: 'config path'},
-    { option: 'settings-path',    type: 'String',     description: 'settings path'},
-    { option: 'private-server',   type: 'Boolean',    description: 'do not inform happyfuntimes.net about this server. Users will not be able to use happyfuntimes.net to connect to your games'},
-    { option: 'debug',            type: 'Boolean',    description: 'check more things'},
-    { option: 'verbose',          type: 'Boolean',    description: 'print more stuff'},
-    settingsOptionSpec,
-  ].concat(require('./common-cli-options').options),
-  helpStyle: {
-    typeSeparator: '=',
-    descriptionSeparator: ' : ',
-    initialIndent: 4,
-  },
-};
-
-var config     = require('../lib/config');
-var log        = require('../lib/log');
-var Promise    = require('promise');
-var optionator = require('optionator')(optionSpec);
-var settings;
-
-try {
-  var args = optionator.parse(process.argv);
-} catch (e) {
-  console.error(e);
-  process.exit(1);  // eslint-disable-line
-}
-
-var printHelp = function() {
-  var settings = [];
-  Object.keys(require('../lib/config').getSettings().settings).forEach(function(key) {
-    settings.push(key);
-  });
-  settingsOptionSpec.description += settings.join(', ');
-
-  console.log(optionator.generateHelp());
-  process.exit(0);  // eslint-disable-line
-};
-
-if (args.help) {
-  printHelp();
-}
-
-log.config(args);
-config.setup(args);
-if (args.settings) {
-  settings = config.getSettings().settings;
-  args.settings.split(',').forEach(function(setting) {
-    var keyValue = setting.split('=');
-    var key = keyValue[0];
-    var value = keyValue[1];
-    if (!settings[key]) {
-      console.error('no setting: "' + key + '"');
-      printHelp();
-    }
-    settings[key] = value;
-  });
-}
-if (args.port) {
-  settings = config.getSettings().settings;
-  settings.port = args.port;
-}
-
-
-
-function exitBecauseAlreadyRunning() {
-  console.error("HappyFunTimes is already running");
-}
-
-function checkForPrerequisites() {
-  var platInfo = require('../lib/platform-info');
-  return platInfo.checkForPrerequisites();
-}
-
-function startServer() {
-  if (args.appMode) {
-    require('../lib/games').init();
+class ServerHelper {
+  constructor(hftServer, dnsServer, ports) {
+    this._hftServer = hftServer;
+    this._dnsServer = dnsServer;
+    this._ports = ports;
   }
-  var browser   = require('../lib/browser');
-  var DNSServer = require('./dnsserver');
-  var iputils   = require('../lib/iputils');
-  var HFTServer = require('./hft-server');
-
-  var server;
-  var launchBrowser = function(err) {
-    var next = function() {
-      if (err) {
-        console.error(err);
-        process.exit(1);  // eslint-disable-line
-      } else {
-        if (args.appMode) {
-          console.log([
-            '',
-            '---==> HappyFunTimes Running <==---',
-            '',
-          ].join('\n'));
-        }
-      }
-    };
-
-    var p;
-    if (args.appMode || args.show) {
-      var name = args.show || 'games';
-      p = checkForPrerequisites()
-          .catch(function(err) {
-             console.error(err);
-             process.exit(1);  // eslint-disable-line
-          })
-          .then(function() {
-            return browser.launch('http://localhost:' + server.getSettings().port + '/' + name + '.html', config.getConfig().preferredBrowser);
-          });
-    } else {
-      p = Promise.resolve();
+  get ports() {
+    return this._ports;
+  }
+  close() {
+    if (this._dnsServer) {
+      this._dnsServer.close();
+      this._dnsServer = null;
     }
-    p.then(function() {
-       next();
-    }).catch(function(err) {
-      console.error(err);
-      next();
+    if (this._hftServer) {
+      this._hftServer.close();
+      this._hftServer = null;
+    }
+  }
+}
+
+function startServer(options) {
+  return new Promise(function(resolve, reject) {
+    const DNSServer = require('./dnsserver');
+    const iputils   = require('../lib/iputils');
+    const HFTServer = require('./hft-server');
+    const server = new HFTServer(options);
+    let responsesNeeded = 1;
+    let usedPorts;
+    let dns;
+
+    function reportReady() {
+      --responsesNeeded;
+      if (responsesNeeded === 0) {
+        resolve(new ServerHelper(server, dns, usedPorts));
+      }
+    }
+
+    server.on('ports', (ports) => {
+      usedPorts = ports;
+      reportReady();
     });
-  };
+    server.on('error', reject);
 
-  server = new HFTServer(args, launchBrowser);
+    if (options.dns) {
+      ++responsesNeeded;
 
-  if (args.dns) {
-    // This doesn't need to dynamicallly check for a change in ip address
-    // because it should only be used in a static ip address sitaution
-    // since DNS has to be static for our use-case.
-    (function() {
-      return new DNSServer({address: args.address || iputils.getIpAddresses()[0]});
-    }());
-    server.on('ports', function(ports) {
-      if (ports.indexOf('80') < 0 && ports.indexOf(80) < 0) {
-        console.error('You specified --dns but happyFunTimes could not use port 80.');
+      // This doesn't need to dynamicallly check for a change in ip address
+      // because it should only be used in a static ip address sitaution
+      // since DNS has to be static for our use-case.
+      dns = new DNSServer({address: options.address || iputils.getIpAddresses()[0]});
+      dns.on('listening', reportReady);
+      dns.on('error', (err) => {
+        console.error('You specified --dns but happyFunTimes could not use port 53.');
         console.error('Do you need to run this as admin or use sudo?');
-        process.exit(1);  // eslint-disable-line
-      }
-    });
-  }
+        reject(err);
+      });
+    }
+  });
 }
 
-function launchIfNotRunning() {
-  var io = require('../lib/io');
-  var settings = config.getSettings().settings;
-  var sendJSON = Promise.denodeify(io.sendJSON);
+module.exports = {
+  start: startServer,
+};
 
-  var url = "http://localhost:" + settings.port;
-  sendJSON(url, { cmd: "happyFunTimesPing" }, {}).then(exitBecauseAlreadyRunning, startServer).done();
-}
-
-launchIfNotRunning();
 
 
 

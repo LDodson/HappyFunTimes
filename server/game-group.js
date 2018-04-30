@@ -31,7 +31,7 @@
 
 "use strict";
 
-var debug  = require('debug')('game-group');
+var debug  = require('debug')('happyfuntimes:game-group');
 var Game   = require('./game');
 
 /**
@@ -44,10 +44,8 @@ var Game   = require('./game');
  */
 var GameGroup = function(gameId, relayServer, options) {
   options = options || {};
-  var gameDB = options.gameDB;
   this.options = options;
   this.gameId = gameId;
-  this.runtimeInfo = gameDB.getGameById(gameId);
   this.relayServer = relayServer;
   this.games = [];  // first game is the "master"
   this.nextGameId = 0;  // start at 0 because it's easy to switch games with (gameNum + numGames + dir) % numGames
@@ -125,11 +123,7 @@ GameGroup.prototype.assignClient = function(client, data) {
   this.games.push(game);
   var allowMultipleGames = false;
   if (data.allowMultipleGames) {
-    if (!this.runtimeInfo || !this.runtimeInfo.features.allowMultipleGames) {
-      console.error("allowMultipleGames requires apiVersion >= 1.4.0");
-    } else {
-      allowMultipleGames = true;
-    }
+    allowMultipleGames = true;
   }
   if (this.games.length > 1) {
     var oldGame;
@@ -163,6 +157,8 @@ GameGroup.prototype.assignClient = function(client, data) {
     this.games.splice(ndx, 1);
     this.games.unshift(game);
   }
+
+  return game;
 };
 
 GameGroup.prototype.addFiles = function(files) {

@@ -9,7 +9,7 @@ shake it to jump. It's really up to you.
 You can [download this sample here](http://docs.happyfuntimes.net/docs/unity/samples.html?owner=greggman&repo=hft-unity2dplatformer).
 
 Note: You should consider checking out the [HappyFunTimes Unity GamePad example](gamepad.md)
-which is easier than this sample. This sample is still 100% valid and server as a good example
+which is easier than this sample. This sample is still 100% valid and serves as a good example
 of doing everything with custom code.
 
 ## A short explaination:
@@ -131,9 +131,9 @@ The ones that start with `hft/` are part of HappyFunTimes and are
         'hft/misc/misc',
         'hft/misc/mobilehacks',
         'hft/misc/touch',
-        '../bower_components/hft-utils/dist/audio',
-        '../bower_components/hft-utils/dist/imageloader',
-        '../bower_components/hft-utils/dist/imageutils',
+        '../3rdparty/hft-utils/dist/audio',
+        '../3rdparty/hft-utils/dist/imageloader',
+        '../3rdparty/hft-utils/dist/imageutils',
       ], function(
         CommonUI,
         GameClient,
@@ -338,13 +338,13 @@ to the phone.
 We need to define classes to receive the data we defined above from the phone
 
     // Message when player presses or release jump button
-    private class MessageJump : MessageCmdData
+    private class MessageJump
     {
         public bool jump = false;
     }
 
     // Message when player pressed left or right
-    private class MessageMove : MessageCmdData
+    private class MessageMove
     {
         public int dir = 0;  // will be -1, 0, or +1
     }
@@ -399,7 +399,7 @@ To send our color choice to the phone we define a class for that
     // values. Finally they are converted back to RGB.
     // The min/max values are a hue range. Anything outside that range will
     // not be adjusted.
-    private class MessageSetColor : MessageCmdData
+    private class MessageSetColor
     {
         public MessageSetColor() { }  // for deserialization
         public MessageSetColor(float _h, float _s, float _v, float _min, float _max)
